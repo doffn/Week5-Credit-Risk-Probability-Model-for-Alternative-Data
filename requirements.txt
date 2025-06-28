@@ -12,3 +12,4 @@ pytest
 flake8
 black
 jupyter
+dvc
