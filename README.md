@@ -1,4 +1,4 @@
-# Credit Risk Model
+# Week5-Credit-Risk-Probability-Model-for-Alternative-Data
 
 This repository contains an end-to-end implementation of a Credit Risk Scoring model using alternative data provided by an eCommerce platform.
 
@@ -54,4 +54,3 @@ A balance between performance and transparency is crucial.
 
 MIT or as per 10 Academy’s project requirement.
 
-# Week5-Credit-Risk-Probability-Model-for-Alternative-Data
