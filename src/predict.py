@@ -72,3 +72,76 @@ class ModelTrainer:
                     "accuracy": accuracy,
                     "precision": precision,
                     "recall": recall,
+                    "f1_score": f1,
+                    "report": report,
+                    "model": model,
+                    "y_pred": y_pred
+                }
+
+                # Log metrics and model
+                mlflow.log_metric("accuracy", accuracy)
+                mlflow.log_metric("precision", precision)
+                mlflow.log_metric("recall", recall)
+                mlflow.log_metric("f1_score", f1)
+                mlflow.log_text(str(report), "classification_report.txt")
+                mlflow.sklearn.log_model(model, name.replace(" ", "_").lower() + "_model")
+
+                # Track best model by F1-score
+                if f1 > self.best_f1:
+                    self.best_f1 = f1
+                    self.best_model = model
+                    self.best_model_name = name
+
+    def predict(self, features: list):
+        """Predict on new single sample (features must be raw, unscaled)."""
+        X_arr = np.array(features).reshape(1, -1)
+        X_imputed = self.imputer.transform(X_arr)
+        X_scaled = self.scaler.transform(X_imputed)
+        pred = self.best_model.predict(X_scaled)
+        proba = self.best_model.predict_proba(X_scaled)[:, 1] if hasattr(self.best_model, "predict_proba") else None
+        return {
+            "prediction": int(pred[0]),
+            "probability": float(proba[0]) if proba is not None else None,
+        }
+
+    def save_best_model(self, filepath="best_model.pkl"):
+        if self.best_model:
+            joblib.dump(self.best_model, filepath)
+            print(f"Saved best model '{self.best_model_name}' to '{filepath}'")
+        else:
+            print("No model trained yet to save.")
+
+    def plot_confusion_matrix(self, model_name=None):
+        if model_name is None:
+            model_name = self.best_model_name
+        if model_name not in self.results:
+            print(f"Model '{model_name}' results not found.")
+            return
+
+        y_pred = self.results[model_name]["y_pred"]
+        disp = ConfusionMatrixDisplay.from_predictions(self.y_test, y_pred, cmap=plt.cm.Blues)
+        plt.title(f"Confusion Matrix - {model_name}")
+        plt.show()
+
+    def plot_feature_importance(self, model_name=None):
+        if model_name is None:
+            model_name = self.best_model_name
+        if model_name not in self.results:
+            print(f"Model '{model_name}' results not found.")
+            return
+
+        model = self.results[model_name]["model"]
+        if not hasattr(model, "feature_importances_"):
+            print(f"Model '{model_name}' does not have feature_importances_ attribute.")
+            return
+
+        importances = model.feature_importances_
+        feature_names = self.X.columns
+        indices = np.argsort(importances)[::-1]
+
+        plt.figure(figsize=(10, 6))
+        plt.title(f"Feature Importances - {model_name}")
+        plt.bar(range(len(importances)), importances[indices], align='center')
+        plt.xticks(range(len(importances)), feature_names[indices], rotation=90)
+        plt.tight_layout()
+        plt.show()
