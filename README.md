@@ -9,6 +9,8 @@ credit-risk-model/
 ├── .github/workflows/ci.yml   # CI/CD workflow
 ├── data/                      # Raw and processed data
 ├── notebooks/                 # Exploratory notebooks
+├── models/                 # model from notebooks
+│   ├── best_model.pkl          # Best model
 ├── src/                       # Core source code
 │   ├── data_processing.py     # Feature engineering
 │   ├── train.py               # Training logic
